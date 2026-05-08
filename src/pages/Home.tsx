@@ -292,16 +292,7 @@ export default function Home() {
               transition={{ type: "spring", stiffness: 100, damping: 20 }}
               className="flex flex-col items-start text-left"
             >
-              {/* Eyebrow pill badge — design-taste-frontend §4 */}
-              <motion.div
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", stiffness: 160, damping: 22, delay: 0.15 }}
-                className="flex items-center gap-2 bg-fox/10 text-fox px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] mb-7 border border-fox/20"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-fox animate-pulse" aria-hidden="true" />
-                Hub de Inovação Jurídica
-              </motion.div>
+
 
               <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold font-playfair leading-[0.92] mb-6 tracking-tight text-left">
                 Quer fundar
@@ -320,7 +311,7 @@ export default function Home() {
                     initial={{ scaleX: 0, opacity: 0 }}
                     animate={{ scaleX: 1, opacity: 1 }}
                     transition={{ delay: 0.7, duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                    className="absolute inset-x-0 inset-y-0 bg-fox -rotate-1 z-0 shadow-lg origin-left rounded-sm"
+                    className="absolute inset-x-0 -top-1 -bottom-3 inset-y-0 translate-y-2 bg-fox -rotate-1 z-0 shadow-lg origin-left rounded-sm"
                     aria-hidden="true"
                   />
                 </span>
