@@ -322,20 +322,7 @@ export default function Home() {
                 portfólio em tempo real.
               </p>
 
-              {/* M1: Button-in-Button CTA */}
-              <a
-                href="#ranking"
-                className="group inline-flex items-center gap-3 bg-fox text-white pl-7 pr-2 py-2 rounded-full font-bold uppercase tracking-wider text-sm shadow-[0_10px_28px_rgba(255,107,0,0.35)] hover:shadow-[0_16px_40px_rgba(255,107,0,0.45)] hover:bg-fox/92 active:scale-[0.97] transition-all duration-300"
-              >
-                Ver o Ranking
-                {/* Nested icon wrapper — kinetic hover */}
-                <span
-                  className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 transition-transform duration-300"
-                  aria-hidden="true"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </span>
-              </a>
+
             </motion.div>
 
             {/* ─ Coluna direita — stats decorativo ─── */}
@@ -347,7 +334,7 @@ export default function Home() {
               aria-hidden="true"
             >
               {/* Card flutuante — mini ranking */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_16px_48px_rgba(42,22,23,0.1)] p-5">
+              {/* <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_16px_48px_rgba(42,22,23,0.1)] p-5">
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-brown/30 mb-4">
                   Ranking Ilab — Ao vivo
                 </p>
@@ -363,7 +350,9 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
+
+
 
               {/* Stat pill */}
               <div className="flex gap-3">
@@ -376,6 +365,21 @@ export default function Home() {
                   <p className="font-playfair font-black text-3xl text-gold tabular">9</p>
                 </div>
               </div>
+
+              {/* M1: Button-in-Button CTA */}
+              <a
+                href="#ranking"
+                className="group inline-flex items-center gap-3 bg-fox text-white pl-7 pr-2 py-2 rounded-full font-bold uppercase tracking-wider text-sm shadow-[0_10px_28px_rgba(255,107,0,0.35)] hover:shadow-[0_16px_40px_rgba(255,107,0,0.45)] hover:bg-fox/92 active:scale-[0.97] transition-all duration-300"
+              >
+                Ver o Ranking
+                {/* Nested icon wrapper — kinetic hover */}
+                <span
+                  className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 transition-transform duration-300"
+                  aria-hidden="true"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </a>
             </motion.div>
 
           </div>
