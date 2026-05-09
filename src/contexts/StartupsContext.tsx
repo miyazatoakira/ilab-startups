@@ -22,21 +22,38 @@ export function StartupsProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    setIsLoading(true);
+    const cached = localStorage.getItem('@sanfranilab:startups');
+    if (cached) {
+      try {
+        setStartups(JSON.parse(cached));
+        setIsLoading(false);
+      } catch (e) {
+        // ignore parse error
+      }
+    } else {
+      setIsLoading(true);
+    }
+    
     setError(null);
     try {
       if (supabase) {
         // Fonte única de verdade: Supabase
         const data = await fetchStartupsFromSupabase();
-        setStartups(data);
+        if (data.length === 0) {
+          // Se o banco estiver vazio, usa os dados de exemplo para mostrar o design
+          setStartups(mockStartups);
+        } else {
+          setStartups(data);
+          localStorage.setItem('@sanfranilab:startups', JSON.stringify(data));
+        }
       } else {
-        // Fallback de desenvolvimento (sem variáveis de ambiente configuradas)
+        // Fallback de desenvolvimento
         setStartups(mockStartups);
       }
     } catch (err) {
       console.error('[StartupsProvider] Erro ao carregar:', err);
       setError('Não foi possível carregar os dados. Exibindo dados de exemplo.');
-      setStartups(mockStartups);
+      if (!cached) setStartups(mockStartups);
     } finally {
       setIsLoading(false);
     }

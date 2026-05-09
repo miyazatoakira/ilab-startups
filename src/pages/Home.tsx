@@ -2,14 +2,14 @@ import { ArrowRight, Star, Target, Building2, Send, Sparkles, AlertCircle } from
 import { Link } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { useStartups } from "../hooks/useStartups";
-import { motion } from "motion/react";
+import { motion, Variants } from "motion/react";
 import StartupIcon from "../components/StartupIcon";
 import { GooeyFilter } from "../components/GooeyFilter";
 import { PixelTrail } from "../components/PixelTrail";
 import React, { useState } from "react";
 
 /* ─── Animation Variants ─────────────────────────────────── */
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -17,7 +17,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
@@ -562,10 +562,7 @@ export default function Home() {
               >
                 Portfólio de Startups
               </h2>
-              <p className="text-brown/60 max-w-xl leading-relaxed">
-                Perfis dinâmicos carregados diretamente do banco de dados
-                oficial do Sanfran iLab.
-              </p>
+
             </div>
           </div>
 
