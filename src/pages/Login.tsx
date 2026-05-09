@@ -12,7 +12,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,21 +21,25 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[Login] Form submitted");
     if (!email || !password) {
       setError('Preencha todos os campos.');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
-      await login(email, password);
+      console.log("[Login] Calling AuthContext.login...");
+      await login(email.trim(), password);
+      console.log("[Login] Login successful! Navigating to:", from);
       navigate(from, { replace: true });
     } catch (err: any) {
-      console.error("Login error:", err);
+      console.error("[Login] Error caught:", err);
       setError(err.message || 'Falha ao autenticar. Verifique suas credenciais.');
     } finally {
+      console.log("[Login] Finally block reached. Stopping spinner.");
       setIsLoading(false);
     }
   };
@@ -43,7 +47,7 @@ export default function Login() {
   return (
     <div className="min-h-[calc(100dvh-5rem)] flex items-center justify-center bg-[#FFFDF2] relative overflow-hidden px-4">
       <GooeyFilter id="login-goo" strength={10} />
-      
+
       {/* Background Decorativo */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ filter: "url(#login-goo)" }}>
         <PixelTrail pixelSize={32} fadeDuration={1500} pixelClassName="bg-fox/10 rounded-full" className="opacity-40" />
@@ -51,7 +55,7 @@ export default function Login() {
         <div className="absolute -right-20 bottom-1/4 w-[500px] h-[500px] bg-gold/5 blur-3xl rounded-full" />
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative z-10"
@@ -64,10 +68,10 @@ export default function Login() {
 
           <AnimatePresence mode="wait">
             {error && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0, mb: 0 }}
-                animate={{ opacity: 1, height: 'auto', mb: 24 }}
-                exit={{ opacity: 0, height: 0, mb: 0 }}
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
                 className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-start gap-3 border border-red-100 overflow-hidden"
               >
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -83,8 +87,8 @@ export default function Login() {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown/40">
                   <Mail className="w-5 h-5" />
                 </div>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-navy font-medium outline-none focus:bg-white focus:ring-2 focus:ring-fox/20 focus:border-fox transition-all"
@@ -99,8 +103,8 @@ export default function Login() {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-brown/40">
                   <Lock className="w-5 h-5" />
                 </div>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-navy font-medium outline-none focus:bg-white focus:ring-2 focus:ring-fox/20 focus:border-fox transition-all"
@@ -109,8 +113,8 @@ export default function Login() {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoading}
               className="w-full mt-2 bg-navy text-white hover:bg-navy/90 active:scale-[0.98] focus:ring-4 focus:ring-navy/20 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:scale-100 group"
             >
@@ -124,7 +128,7 @@ export default function Login() {
               )}
             </button>
           </form>
-          
+
           <div className="mt-8 pt-6 border-t border-gray-100 text-center">
             <p className="text-xs font-medium text-brown/40">Problemas para acessar? Contate o Sanfran iLab.</p>
           </div>
