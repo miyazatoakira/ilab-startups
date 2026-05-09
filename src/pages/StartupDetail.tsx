@@ -73,7 +73,7 @@ function ContentSkeleton() {
 /* ─── Main Page ───────────────────────────────────────────── */
 export default function StartupDetail() {
   const { id } = useParams();
-  const { startups, isLoading } = useStartups();
+  const { startups, isLoading, refetch } = useStartups();
   const { user } = useAuth();
 
   const startup = startups.find((s) => s.id === id);
@@ -453,7 +453,7 @@ export default function StartupDetail() {
                                     if (notes !== null) {
                                       const { reviewDeliverable } = await import('../data/supabaseService');
                                       await reviewDeliverable(startup.id, type.id, 'approved', notes, type.xpValue, user?.name || 'Admin');
-                                      window.location.reload();
+                                      await refetch();
                                     }
                                   }}
                                   className="flex-1 sm:flex-none text-[10px] font-bold text-white bg-teal hover:bg-teal/90 px-3 py-1.5 rounded-md transition-all uppercase tracking-wider"
@@ -466,7 +466,7 @@ export default function StartupDetail() {
                                     if (notes) {
                                       const { reviewDeliverable } = await import('../data/supabaseService');
                                       await reviewDeliverable(startup.id, type.id, 'rejected', notes, type.xpValue, user?.name || 'Admin');
-                                      window.location.reload();
+                                      await refetch();
                                     }
                                   }}
                                   className="flex-1 sm:flex-none text-[10px] font-bold text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-md transition-all uppercase tracking-wider"
@@ -486,7 +486,7 @@ export default function StartupDetail() {
                                   const { submitDeliverable } = await import('../data/supabaseService');
                                   await submitDeliverable(startup.id, type.id, url, description);
                                   alert('Entregável enviado para análise com sucesso!');
-                                  window.location.reload();
+                                  await refetch();
                                 } catch (err: any) {
                                   alert('Erro ao enviar: ' + err.message);
                                 }

@@ -94,32 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password?: string) => {
-    // ---- MOCK BYPASS PARA TESTES LOCAIS ----
-    if (email === 'admin@foxlaw.com' && password === 'admin') {
-      setUser({
-        id: 'mock-admin',
-        name: 'Administrador de Teste',
-        email: 'admin@foxlaw.com',
-        role: 'admin'
-      });
-      return;
-    }
-    
-    if (email === 'founder@teste.com' && password === 'founder') {
-      setUser({
-        id: 'mock-founder',
-        name: 'Founder de Teste',
-        email: 'founder@teste.com',
-        role: 'founder',
-        // Vincula a uma startup real do mock (a primeira que aparece, 'LexDraught')
-        startupId: '1' 
-      });
-      return;
-    }
-    // ----------------------------------------
-
     if (!supabase) {
-      throw new Error("Supabase não está configurado.");
+      throw new Error("Supabase não está configurado. Verifique as variáveis de ambiente.");
     }
     
     if (!password) {

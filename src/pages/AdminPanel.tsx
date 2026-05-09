@@ -11,11 +11,15 @@ import {
   AlertTriangle,
   ChevronRight,
   Inbox,
-  Loader2
+  Loader2,
+  Plus,
+  Trash2,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getPendingDeliverables, reviewDeliverable } from '../data/supabaseService';
-import { mockStartups, deliverableTypes } from '../data/mockData';
+import { useStartups } from '../hooks/useStartups';
+import { getPendingDeliverables, reviewDeliverable, createStartup, upsertStartupMember } from '../data/supabaseService';
+import { mockStartups, deliverableTypes, MemberRole } from '../data/mockData';
 import { cn } from '../lib/utils';
 import { supabase } from '../data/supabaseService';
 
@@ -235,6 +239,7 @@ function PendingCard({ item, onApprove, onReject }: PendingCardProps) {
 // ─── Painel Principal ─────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { user } = useAuth();
+  const { refetch: refetchStartups } = useStartups();
   const [pending, setPending] = useState<PendingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -242,6 +247,7 @@ export default function AdminPanel() {
   const [modalAction, setModalAction] = useState<'approved' | 'rejected'>('approved');
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   // Mocks para desenvolvimento sem Supabase
   const mockPending: PendingItem[] = mockStartups.flatMap(s =>
@@ -341,14 +347,23 @@ export default function AdminPanel() {
                 <p className="text-sm text-gray-500">Revise e valide os entregáveis enviados pelos founders.</p>
               </div>
             </div>
-            <button
-              onClick={loadPending}
-              disabled={isLoading}
-              className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-navy border border-gray-200 px-4 py-2 rounded-xl transition-all hover:border-gray-300"
-            >
-              <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
-              Atualizar
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsCreateOpen(true)}
+                className="flex items-center gap-2 text-sm font-bold text-white bg-fox hover:bg-fox/90 px-4 py-2 rounded-xl transition-all shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                Cadastrar Startup
+              </button>
+              <button
+                onClick={loadPending}
+                disabled={isLoading}
+                className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-navy border border-gray-200 px-4 py-2 rounded-xl transition-all hover:border-gray-300"
+              >
+                <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+                Atualizar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -418,7 +433,7 @@ export default function AdminPanel() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal de Revisão */}
       <AnimatePresence>
         {modalItem && (
           <ReviewModal
@@ -430,6 +445,205 @@ export default function AdminPanel() {
           />
         )}
       </AnimatePresence>
+
+      {/* Modal de Cadastro */}
+      <AnimatePresence>
+        {isCreateOpen && (
+          <CreateStartupModal
+            onClose={() => setIsCreateOpen(false)}
+            onCreated={() => {
+              setSuccessMsg('✓ Startup cadastrada com sucesso!');
+              setTimeout(() => setSuccessMsg(''), 4000);
+              refetchStartups();
+              loadPending();
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Modal de Cadastro de Startup ─────────────────────────────────────────────
+interface MemberInput {
+  name: string;
+  role: MemberRole;
+  customRole: string;
+  isLeader: boolean;
+}
+
+function CreateStartupModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [leaderPhone, setLeaderPhone] = useState('');
+  const [members, setMembers] = useState<MemberInput[]>([
+    { name: '', role: 'CEO', customRole: '', isLeader: true }
+  ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const addMember = () => {
+    setMembers(prev => [...prev, { name: '', role: 'Outro', customRole: '', isLeader: false }]);
+  };
+
+  const removeMember = (index: number) => {
+    setMembers(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateMember = (index: number, field: keyof MemberInput, value: string | boolean) => {
+    setMembers(prev => prev.map((m, i) => i === index ? { ...m, [field]: value } : m));
+  };
+
+  const handleSubmit = async () => {
+    setFormError('');
+    if (!name.trim()) { setFormError('Nome da startup é obrigatório.'); return; }
+    if (!leaderPhone.trim()) { setFormError('Número do líder é obrigatório.'); return; }
+    const validMembers = members.filter(m => m.name.trim());
+    if (validMembers.length === 0) { setFormError('Adicione pelo menos um integrante.'); return; }
+
+    setIsSubmitting(true);
+    try {
+      const startupId = await createStartup({
+        name: name.trim(),
+        description: description.trim(),
+        leaderPhone: leaderPhone.trim(),
+      });
+
+      for (const member of validMembers) {
+        await upsertStartupMember(startupId, {
+          name: member.name.trim(),
+          role: member.role,
+          customRole: member.role === 'Outro' ? member.customRole.trim() : undefined,
+          isLeader: member.isLeader,
+        });
+      }
+
+      onCreated();
+      onClose();
+    } catch (err: any) {
+      setFormError('Erro ao cadastrar: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const roles: MemberRole[] = ['CEO', 'CTO', 'PM', 'CMO', 'Outro'];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm overflow-y-auto">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-8 max-h-[90vh] overflow-y-auto"
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+          <div>
+            <h3 className="text-xl font-bold text-navy font-playfair">Cadastrar Nova Startup</h3>
+            <p className="text-xs text-gray-500 mt-1">Preencha os dados da startup e seus integrantes.</p>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-navy rounded-lg hover:bg-gray-50">
+            <XCircle className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6 space-y-6">
+          {formError && (
+            <div className="bg-red-50 text-red-600 border border-red-100 p-3 rounded-xl text-sm font-bold flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" /> {formError}
+            </div>
+          )}
+
+          {/* Nome e Telefone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 block mb-1.5">Nome da Startup *</label>
+              <input
+                type="text" value={name} onChange={e => setName(e.target.value)}
+                placeholder="Ex: LexDraught" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-fox/20 focus:border-fox outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 block mb-1.5">Telefone do Líder *</label>
+              <input
+                type="tel" value={leaderPhone} onChange={e => setLeaderPhone(e.target.value)}
+                placeholder="+55 11 99999-9999" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-fox/20 focus:border-fox outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Descrição */}
+          <div>
+            <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 block mb-1.5">Descrição</label>
+            <textarea
+              value={description} onChange={e => setDescription(e.target.value)} rows={3}
+              placeholder="Breve descrição da startup..." className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-fox/20 focus:border-fox outline-none transition-all"
+            />
+          </div>
+
+          {/* Integrantes */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400">Integrantes *</label>
+              <button onClick={addMember} className="flex items-center gap-1.5 text-xs font-bold text-fox hover:text-fox/80 transition-colors">
+                <UserPlus className="w-3.5 h-3.5" /> Adicionar
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {members.map((member, i) => (
+                <div key={i} className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text" value={member.name} onChange={e => updateMember(i, 'name', e.target.value)}
+                      placeholder="Nome do integrante" className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-fox/20 focus:border-fox outline-none"
+                    />
+                    <select
+                      value={member.role} onChange={e => updateMember(i, 'role', e.target.value)}
+                      className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-fox/20 focus:border-fox outline-none"
+                    >
+                      {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    {members.length > 1 && (
+                      <button onClick={() => removeMember(i)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {member.role === 'Outro' && (
+                    <input
+                      type="text" value={member.customRole} onChange={e => updateMember(i, 'customRole', e.target.value)}
+                      placeholder="Informe o cargo" className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-fox/20 focus:border-fox outline-none"
+                    />
+                  )}
+
+                  <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+                    <input
+                      type="checkbox" checked={member.isLeader} onChange={e => updateMember(i, 'isLeader', e.target.checked)}
+                      className="accent-fox w-4 h-4 rounded"
+                    />
+                    Líder responsável
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-100 flex gap-3 sticky bottom-0 bg-white rounded-b-2xl">
+          <button onClick={onClose} disabled={isSubmitting} className="flex-1 py-3 text-gray-500 font-bold bg-gray-50 hover:bg-gray-100 rounded-xl text-sm disabled:opacity-50 transition-colors">
+            Cancelar
+          </button>
+          <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 py-3 text-white font-bold bg-fox hover:bg-fox/90 rounded-xl text-sm flex items-center justify-center gap-2 disabled:opacity-50 shadow-md transition-all">
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            Cadastrar Startup
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 }

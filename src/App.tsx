@@ -10,6 +10,7 @@ import StartupDetail from "./pages/StartupDetail";
 import Login from "./pages/Login";
 import AdminPanel from "./pages/AdminPanel";
 import { AuthProvider } from "./contexts/AuthContext";
+import { StartupsProvider } from "./contexts/StartupsContext";
 
 const router = createBrowserRouter([
   {
@@ -39,7 +40,9 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <StartupsProvider>
+        <RouterProvider router={router} />
+      </StartupsProvider>
     </AuthProvider>
   );
 }

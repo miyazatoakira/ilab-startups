@@ -358,11 +358,15 @@ export default function Home() {
               <div className="flex gap-3">
                 <div className="flex-1 bg-fox/10 rounded-xl p-4 border border-fox/15">
                   <p className="text-[10px] font-black uppercase tracking-widest text-fox/60 mb-1">Startups</p>
-                  <p className="font-playfair font-black text-3xl text-fox tabular">12</p>
+                  <p className="font-playfair font-black text-3xl text-fox tabular">
+                    {isLoading ? <span className="skeleton inline-block w-8 h-8 rounded" /> : startups.length}
+                  </p>
                 </div>
                 <div className="flex-1 bg-gold/8 rounded-xl p-4 border border-gold/15">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gold/60 mb-1">Ativas</p>
-                  <p className="font-playfair font-black text-3xl text-gold tabular">9</p>
+                  <p className="font-playfair font-black text-3xl text-gold tabular">
+                    {isLoading ? <span className="skeleton inline-block w-8 h-8 rounded" /> : startups.filter(s => s.status !== 'Pendente').length}
+                  </p>
                 </div>
               </div>
 

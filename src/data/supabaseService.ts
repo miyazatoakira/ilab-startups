@@ -16,7 +16,7 @@ export async function fetchStartupsFromSupabase(): Promise<Startup[]> {
 
   const { data, error } = await supabase
     .from('startups')
-    .select(`*, startup_scores(total_score), startup_members(*), startup_deliverables(*)`);
+    .select(`*, startup_members(*), startup_deliverables(*)`);
 
   if (error) throw error;
 
@@ -28,7 +28,7 @@ export async function fetchStartupById(id: string): Promise<Startup | null> {
 
   const { data, error } = await supabase
     .from('startups')
-    .select(`*, startup_scores(total_score), startup_members(*), startup_deliverables(*)`)
+    .select(`*, startup_members(*), startup_deliverables(*)`)
     .eq('id', id)
     .single();
 
@@ -413,7 +413,9 @@ function mapStartup(s: any): Startup {
     cohort: s.cohort,
     leaderPhone: s.leader_phone,
     instagramUrl: s.instagram_url,
-    totalScore: s.startup_scores?.[0]?.total_score || 0,
+    totalScore: (s.startup_deliverables || [])
+      .filter((d: any) => d.status === 'approved')
+      .reduce((sum: number, d: any) => sum + (d.xp_earned || 0), 0),
     status: s.status || 'Pendente',
     members: (s.startup_members || []).map((m: any) => ({
       id: m.id, name: m.name, role: m.role,
